@@ -1,38 +1,183 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login - Tracker</title>
-  <style>
-    body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f0f2f5; }
-    .box { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 300px; }
-    input { width: 100%; padding: 10px; margin: 8px 0; box-sizing: border-box; border: 1px solid #ddd; border-radius: 5px; }
-    button { width: 100%; padding: 10px; background: #1877f2; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
-    button:hover { background: #1559c4; }
-    h2 { text-align: center; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tester API LeakOsint</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background-color: #1e1e1e;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        h2 {
+            text-align: center;
+            color: #ffffff;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            background-color: #2a2a2a;
+            border: 1px solid #444;
+            color: #fff;
+            border-radius: 5px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            border: none;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result-box {
+            margin-top: 20px;
+            background-color: #0a0a0a;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #333;
+            min-height: 100px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 13px;
+            color: #00ff00;
+            overflow-x: auto;
+        }
+        .proxy-note {
+            background-color: #332200;
+            border-left: 5px solid #ffaa00;
+            padding: 10px;
+            font-size: 13px;
+            color: #ffcc66;
+            margin-bottom: 20px;
+            border-radius: 3px;
+        }
+        .proxy-note a {
+            color: #ffea00;
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
-  <div class="box">
-    <h2>Login</h2>
-    <input id="user" placeholder="Username">
-    <input id="pass" type="password" placeholder="Password">
-    <button onclick="login()">Masuk</button>
-    <p style="color:red;text-align:center" id="err"></p>
-  </div>
+
+<div class="container">
+    <h2>Tester API LeakOsint Client</h2>
+    
+    <div class="proxy-note">
+        <strong>⚠️ PENTING (BACA DULU):</strong><br>
+        Karena pembatasan keamanan browser (CORS), Anda harus mengaktifkan akses sementara di proxy jembatan terlebih dahulu agar request tidak gagal.<br>
+        1. Buka tab baru, klik link ini: <a href="https://cors-anywhere.herokuapp.com/corsdemo" target="_blank"><strong>Klik Aktifkan Proxy Demo</strong></a><br>
+        2. Klik tombol besar <strong>"Request temporary access to the demo server"</strong> pada halaman tersebut.<br>
+        3. Kembali ke halaman ini dan jalankan tes.
+    </div>
+
+    <div class="form-group">
+        <label for="token">Masukkan API Token Anda:</label>
+        <input type="text" id="token" placeholder="Contoh: 1966317946:yiE4A3VP">
+    </div>
+
+    <div class="form-group">
+        <label for="request">Data yang Ingin Dicari:</label>
+        <input type="text" id="request" placeholder="Contoh: Nama, Email, atau Target">
+    </div>
+
+    <div class="form-group">
+        <label for="limit">Batas Hasil (Limit):</label>
+        <input type="number" id="limit" value="100" min="100" max="10000">
+    </div>
+
+    <button id="btnKirim">Jalankan Request API</button>
+
+    <h3>Respon Server (JSON Mentah):</h3>
+    <div class="result-box" id="result">Hasil respon server akan muncul di sini...</div>
+</div>
 
 <script>
-function login() {
-  const u = document.getElementById('user').value.trim();
-  const p = document.getElementById('pass').value.trim();
-  if (!u || !p) {
-    document.getElementById('err').innerText = 'Isi username & password!';
-    return;
-  }
-  localStorage.setItem('username', u);
-  window.location.href = 'dashboard.html';
-}
+    document.getElementById('btnKirim').addEventListener('click', async function() {
+        const token = document.getElementById('token').value.trim();
+        const requestVal = document.getElementById('request').value.trim();
+        const limit = parseInt(document.getElementById('limit').value) || 100;
+        const resultBox = document.getElementById('result');
+
+        if (!token || !requestVal) {
+            resultBox.style.color = '#ff3333';
+            resultBox.innerText = 'Error: Token API dan Data Pencarian wajib diisi!';
+            return;
+        }
+
+        resultBox.style.color = '#00ff00';
+        resultBox.innerText = 'Sedang mengirim request via jembatan CORS proxy...';
+
+        // URL Endpoint asli LeakOsint dengan ditambahkan CORS proxy di depannya
+        const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+        const targetUrl = 'https://leakosintapi.com/';
+        
+        // Mempersiapkan payload JSON sesuai dokumentasi
+        const payload = {
+            "token": token,
+            "request": requestVal,
+            "limit": limit,
+            "lang": "en"
+        };
+
+        try {
+            const response = await fetch(proxyUrl + targetUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                throw new Error('HTTP status ' + response.status);
+            }
+
+            const data = await response.json();
+            resultBox.style.color = '#00ff00';
+            resultBox.innerText = JSON.stringify(data, null, 4);
+
+        } catch (error) {
+            resultBox.style.color = '#ff3333';
+            resultBox.innerText = 'Request Gagal / Error!\n\n' +
+                'Kemungkinan Penyebab:\n' +
+                '1. Anda belum mengaktifkan izin "CORS Anywhere" di tab sebelah.\n' +
+                '2. Kuota token gratis Anda telah habis.\n' +
+                '3. Server leakosintapi.com menolak koneksi proxy.\n\n' +
+                'Detail Error: ' + error.message;
+        }
+    });
 </script>
+
 </body>
 </html>
